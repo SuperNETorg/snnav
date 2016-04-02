@@ -1,0 +1,20 @@
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script>
+var server = "";
+    var peerExplorerUrl = "http://peerexplorer.com/api_openapi_hallmark_version_jsonp";
+    var nxtPeersUrl = "http://nxtpeers.com/api/cors/jsonp.php";
+    var totalPeerIP = 0;
+    var hasUserServer = false;
+//$.ajax({
+$.ajax({
+                        type: 'GET', url: 'node.php', async: false, jsonpCallback: 'nxtpeers', contentType: "application/json", dataType: 'jsonp', timeout: 30000,
+                        success: function (nxtPeersResult) {
+							console.log(nxtPeersResult);
+                            totalPeerIP = nxtPeersResult.peers.length;
+                            var random = Math.floor((Math.random() * (nxtPeersResult.peers.length - 1)) + 0);
+                            server = "http://" + nxtPeersResult.peers[random] + ":7876";
+							console.log(server);
+                            
+                        },
+                      });
+</script>

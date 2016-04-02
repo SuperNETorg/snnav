@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+</head>
+<body>
+  <div class="col-md-12">
+    <h2>Supernet NAV calculation</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Asset/Coin</th>
+          <th>Account</th>
+          <th>Quantity</th>
+          <th>Last Price</th>
+          <th>Total in NXT</th>
+ 
+        </tr>
+      </thead>
+      <tbody id="tradeHistory">
+      
+      </tbody>
+    </table>
+  </div>
+  <p id="demo"></p>
+  <script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+  
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <script>
+  //function checknav(){
+  
+   $.ajaxSetup({
+	async: false
+	});
+  //var url = 'http://78.63.207.76:7876/nxt';
+  var urlNXT = '';
+  var iotaurl = 'http://78.63.207.76:999';
+  var account1 = "NXT-MRBN-8DFH-PFMK-A4DBM";
+  var account2 = "NXT-USU4-92UY-KEYT-4H649";
+  var account3 = "NXT-H8AL-VEG7-4FL5-G2L4W";
+  var accountbtcd1 = "RA7FDvaNFXZNLqosSbCWFbypuvijJNQw5J";
+  var accountbtcd2 = "RM5NNYdGee6X65aFGkyaRkYocSxQVNsB8d";
+  var accountvrc = "VDAQoJHiANmBDBC94MqqLYXosUEZqfk1p2";
+  var accountvpn = "VdHevSrSsdFn5Mrbrf7xxM99uthTEhiEpJ";
+  var accountsys = "SRhwEU1aQk2DPJSC6NTySTdCEtGpS7UF4Y";
+  var accountiota = "OZSHBYNQLLKOUDQMZRHMYZQFC9JPXIWNITEOMX9NBDWBBIIWDPBHAZTCQBTOSAYION9RMUIXMIYGZVNXF";
+  var iotaqty = 0;
+  var btcdqty = 0;
+  //var btcdqty = 38202.82571657 + 2470;
+  var vrcqty = 2145385.87637096;
+  var vpnqty = 18918648.49697261;
+  var sysqty = 20000000;
+  var price = 0;
+  var kaina = 0;
+  var rows; 
+  var total = 0;
+  var totalsumnav = 0;
+  var nav = 0;
+  var balancebtc = 0;
+  var btcd1qty = 0;
+  var btcd2qty = 0;
+  //server start
+	
+
+function getnxtserver(){
+	var server = "";
+    var peerExplorerUrl = "http://peerexplorer.com/api_openapi_hallmark_version_jsonp";
+    var nxtPeersUrl = "http://nxtpeers.com/api/cors/jsonp.php";
+    var totalPeerIP = 0;
+    var hasUserServer = false;
+//$.ajax({
+$.ajax({
+                        type: 'GET', url: 'node.php', async: false, jsonpCallback: 'nxtpeers', contentType: "application/json", dataType: 'jsonp', timeout: 30000,
+                        success: function (nxtPeersResult) {
+							totalPeerIP = nxtPeersResult.peers.length;
+                            var random = Math.floor((Math.random() * (nxtPeersResult.peers.length - 1)) + 0);
+                            urlNXT = "http://" + nxtPeersResult.peers[random] + ":7876/nxt";
+			                            
+                        },
+                      });
+	};
+  //server end
+  
+  
+  function maincheckprice(name,asset,NQT,kiekis,kaina){
+  	
+		$.getJSON(urlNXT, {"requestType": "getLastTrades", "assets": asset}, function(request1) {
+			var trades = request1.trades;
+			total = 0;
+
+			$.each(trades, function(key, data1) {
+			if (asset !== '17707493498005633135' && asset !== '13120737659249432970' && data1.priceNQT != 0) {kaina = data1.priceNQT / Math.pow(10, NQT), total = kaina * kiekis;} else{kaina = 0, total = 0;};
+			//kaina = data1.priceNQT / Math.pow(10, NQT);
+			//total = kaina * kiekis;
+			//console.log(asset,kiekis,kaina,total,totalsumnav);
+	  
+			});
+			});
+		
+		return kaina;
+		//return totalsumnav;
+					
+    };
+  
+  
+  
+  function getassets (account){
+  $.getJSON(urlNXT, {"requestType": "getAccountAssets", "account": account, "includeAssetInfo": "true"}, function(request) {
+  
+    var assets = request.accountAssets;
+    var nxtTime = 1385294400;
+    $.each(assets, function(key, data) {
+	//console.log(data.name);
+	  var asset = data.asset;
+	  var decimals = data.decimals;
+      var NQT_QNT = 8 - decimals;
+      var quantityQNT = data.quantityQNT / Math.pow(10, decimals);
+	  var price = maincheckprice(data.name,asset,NQT_QNT,quantityQNT,kaina);
+      var priceNQT = data.priceNQT / Math.pow(10, NQT_QNT);
+      var NxtTimestamp = (+data.timestamp + +nxtTime) * 1000;
+      var d = new Date(NxtTimestamp);
+	  totalsumnav = totalsumnav + price * quantityQNT;
+	  
+	  //console.log(totalsumnav,price);
+      rows += '<tr>';
+        rows += '<td>'+data.name+'</td>';
+        rows += '<td>'+account+'</td>';
+        rows += '<td>'+quantityQNT+'</td>';
+        rows += '<td>'+price+'</td>';
+        rows += '<td>'+total+'</td>';
+      //  rows += '<td>'+data.buyerRS+'</td>';
+      //  rows += '<td>'+data.sellerRS+'</td>';
+      //rows += '</tr>';
+    });
+    $("#tradeHistory").html(rows);
+	nav = totalsumnav / 816061;
+	//demo.innerHTML = demo.innerHTML + "NAV:  " + nav + "<br />";
+	//console.log(totalsumnav);
+	      });
+	};
+	
+	function getbalance(account){
+  	
+		$.getJSON(urlNXT, {"requestType": "getBalance", "account": account}, function(request2) {
+			var balance = request2.balanceNQT / 100000000;
+			var Sticker = 'NXT'
+		rows += '<tr>';
+        rows += '<td>'+Sticker+'</td>';
+		rows += '<td>'+account+'</td>';
+		rows += '<td>'+'</td>';	
+		rows += '<td>'+'</td>';	
+		rows += '<td>'+balance+'</td>';	
+		$("#tradeHistory").html(rows);	
+		totalsumnav = totalsumnav + balance;
+		nav = totalsumnav / 816061;		
+			});
+		
+		
+		//return balance;
+		//return totalsumnav;
+					
+    };
+	
+	function getvrcbalance (wallet){
+		$.getJSON('vrc.php', function(request) {
+		vrcqty = request;
+		totalsumnav = totalsumnav + vrcqty;
+		nav = totalsumnav / 816061;	
+			
+	});
+	}
+
+	function getsysbalance (wallet){
+		$.getJSON('sys.php', function(request) {
+		sysqty = request;
+		totalsumnav = totalsumnav + sysqty;
+		nav = totalsumnav / 816061;	
+			
+	});
+	}
+	
+	function getvpnbalance (wallet){
+		$.getJSON('vpn.php', function(request) {
+		vpnqty = request;
+		totalsumnav = totalsumnav + vpnqty;
+		nav = totalsumnav / 816061;	
+			
+	});
+	}
+	
+	function getbtcdbalance1 (wallet){
+		$.getJSON('btcd1.php', function(request) {
+		btcd1qty = request;
+		totalsumnav = totalsumnav + btcd1qty;
+		nav = totalsumnav / 816061;	
+			
+	});
+	}
+	
+	function getbtcdbalance2 (wallet){
+		$.getJSON('btcd2.php', function(request) {
+		btcd2qty = request;
+		totalsumnav = totalsumnav + btcd2qty;
+		nav = totalsumnav / 816061;	
+			
+	});
+	}
+	
+	//function getiotabalance (wallet){
+	//	$.post(iotaurl, {} function(request) {
+	//	btcd2qty = request;
+	//	totalsumnav = totalsumnav + btcd2qty;
+	//	nav = totalsumnav / 816061;	
+			
+	//});
+	//}
+	
+	function getratio (ticker){
+	$.getJSON('http://api.cryptocoincharts.info/tradingPair/' + ticker, {}, function(request5) {
+		ratio = request5.price;
+
+	});
+	return ratio;
+	}
+	
+
+
+getnxtserver();	
+console.log(urlNXT);
+getassets(account1);	
+getassets(account2);
+getbalance(account1);
+getbalance(account2);
+getbalance(account3);
+getvrcbalance(accountvrc);
+getsysbalance(accountsys);
+getvpnbalance(accountvpn);
+getbtcdbalance1(accountbtcd1);
+getbtcdbalance2(accountbtcd2);
+btcdqty = btcd1qty + btcd2qty;
+var nxtbtcbalance = getratio('nxt_btc') * totalsumnav;
+var btcdbtcbalance = getratio('btcd_btc') * btcdqty;
+var vrcbtcbalance = getratio('vrc_btc') * vrcqty;
+var vpnbtcbalance = getratio('vpn_btc') * vpnqty;
+var sysbtcbalance = getratio('sys_btc') * sysqty;
+var totalbtc = (nxtbtcbalance + btcdbtcbalance + vrcbtcbalance + vpnbtcbalance + sysbtcbalance);
+var navbtc = totalbtc / 816061;
+var navnxt = navbtc / getratio('nxt_btc');
+
+
+//getbtcdbalance(accountbtcd2);
+
+demo.innerHTML = demo.innerHTML + "Total in NXT:  " + totalsumnav + "<br />";
+demo.innerHTML = demo.innerHTML + "         BTC:  " + nxtbtcbalance + "<br /><br />";
+demo.innerHTML = demo.innerHTML + "Total in BTCD:  " + btcdqty + "<br />";
+demo.innerHTML = demo.innerHTML + "         BTC:  " + btcdbtcbalance + "<br /><br />";
+demo.innerHTML = demo.innerHTML + "Total in VRC:  " + vrcqty + "<br />";
+demo.innerHTML = demo.innerHTML + "         BTC:  " + vrcbtcbalance + "<br /><br />";
+demo.innerHTML = demo.innerHTML + "Total in VPN:  " + vpnqty + "<br />";
+demo.innerHTML = demo.innerHTML + "         BTC:  " + vpnbtcbalance + "<br /><br />";
+demo.innerHTML = demo.innerHTML + "Total in SYS:  " + sysqty + "<br />";
+demo.innerHTML = demo.innerHTML + "         BTC:  " + sysbtcbalance + "<br /><br /><br />";
+
+
+demo.innerHTML = demo.innerHTML + "<b>" + "Supernet NAV in BTC:  " + navbtc + "</b><br />";
+demo.innerHTML = demo.innerHTML + "<b>" + "Supernet NAV in NXT:  " + navnxt + "</b><br />";
+//setTimeout(function(){checknav();},20000)
+//};
+//checknav();
+  </script>
+</body>
+</html>
+    
